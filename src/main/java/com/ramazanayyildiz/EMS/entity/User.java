@@ -24,10 +24,10 @@ public class User implements UserDetails {
     @Setter(AccessLevel.NONE)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @Column(unique = true, nullable = false, length = 250)
     private String userName;
 
-    @Column(nullable = false,length = 255)
+    @Column(nullable = false,length = 100)
     private String password;
 
     @Column(name = "first_name", nullable = false,length = 50)
