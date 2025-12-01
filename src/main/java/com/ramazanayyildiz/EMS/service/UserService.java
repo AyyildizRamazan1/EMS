@@ -1,6 +1,7 @@
 package com.ramazanayyildiz.EMS.service;
 
 import com.ramazanayyildiz.EMS.dto.UserCreateDto;
+import com.ramazanayyildiz.EMS.dto.UserResponseDto;
 import com.ramazanayyildiz.EMS.dto.UserUpdateDto;
 import com.ramazanayyildiz.EMS.entity.User;
 import com.ramazanayyildiz.EMS.entity.enums.Role;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor //Lombok: Final alanlar için constructor oluşturur(dependency injection(Autowired))
@@ -38,16 +40,34 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    private UserResponseDto converToDto(User user) {
+        return new UserResponseDto(
+                user.getId(),
+                user.getUsername(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole().name(),
+                user.isEnabled()
+        );
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::converToDto)//Her User'ı DTO'ya dönüştür
+                .collect(Collectors.toList());
     }
 
-    public User updateUser(Long userId, UserUpdateDto updateDto) {
-        User existingUser = getUserById(userId);
+    public UserResponseDto getUserById(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with : " + userId));
+        return converToDto(user);
+    }
+
+    private User getExistingUserById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with: " + userId));
+    }
+
+    public UserResponseDto updateUser(Long userId, UserUpdateDto updateDto) {
+        User existingUser = getExistingUserById(userId);
 
         if (updateDto.getFirstName() != null) {
             existingUser.setFirstName(updateDto.getFirstName());
@@ -63,7 +83,14 @@ public class UserService {
                 throw new ResourceNotFoundException("Geçersiz rol tipi: " + updateDto.getRole() + ". Kabul edilenler: BOSS, TECHNICIAN");
             }
         }
-        return userRepository.save(existingUser);
+        User updatedUser = userRepository.save(existingUser);
+        return converToDto(updatedUser);
     }
+
+    public void deleteUser(Long userId){
+        User existingUser=getExistingUserById(userId);
+        userRepository.deleteById(existingUser.getId());
+    }
+
 }
 
