@@ -62,7 +62,7 @@ public class UserService {
         return converToDto(user);
     }
 
-    private User getExistingUserById(Long userId) {
+    public User getExistingUserById(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with: " + userId));
     }
 
@@ -90,6 +90,12 @@ public class UserService {
     public void deleteUser(Long userId){
         User existingUser=getExistingUserById(userId);
         userRepository.deleteById(existingUser.getId());
+    }
+
+    public Long getUserIdByUsername(String username){
+        User user= userRepository.findByUserName(username)
+                .orElseThrow(()-> new ResourceNotFoundException("Kullanıcı adı bulunamadı: " + username));
+        return user.getId();
     }
 
 }

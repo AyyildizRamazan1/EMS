@@ -45,6 +45,9 @@ public class Inventory {
     @Column(name = "created_time", nullable = false, updatable = false)
     private LocalDateTime createdTime;
 
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
+
     public void onPrePersist() {
         this.setCreatedTime(LocalDateTime.now());
     }
