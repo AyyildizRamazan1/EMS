@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,10 +22,10 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserCreateDto userDto) {
+    public ResponseEntity<UserResponseDto> registerUser(@Valid @RequestBody UserCreateDto userDto) {
 
         User newUser = userService.registerUser(userDto);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.getUserById(newUser.getId()),HttpStatus.CREATED);
     }
 
     @GetMapping("/hello")
@@ -33,12 +34,14 @@ public class UserController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         List<UserResponseDto> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
         UserResponseDto user = userService.getUserById(id);
         return ResponseEntity.ok(user);
@@ -51,6 +54,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();//204 dönderir işlem başarılı ama yanıt gövdesi boş

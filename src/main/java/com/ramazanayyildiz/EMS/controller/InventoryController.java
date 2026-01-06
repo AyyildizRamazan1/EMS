@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class InventoryController {
 
     //Yeni envanter kaydı oluşturmak
     @PostMapping
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<InventoryResponseDto> createInventory(
             @Valid @RequestBody InventoryCreateDto createDto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -37,18 +39,21 @@ public class InventoryController {
 
     //Tüm Kayıtlar
     @GetMapping
+    @PreAuthorize("hasAnyRole('BOSS', 'TECHNICIAN')")
     public ResponseEntity<List<InventoryResponseDto>> getAllInventories() {
         List<InventoryResponseDto> inventories = inventoryService.getAllInventories();
         return ResponseEntity.ok(inventories);//200
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('BOSS', 'TECHNICIAN')")
     public ResponseEntity<InventoryResponseDto> getInventoryById(@PathVariable Long id) {
         InventoryResponseDto inventory = inventoryService.getInventoryById(id);
         return ResponseEntity.ok(inventory);//200
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<InventoryResponseDto> updateInventory(
             @PathVariable Long id,
             @RequestBody InventoryUpdateDto updateDto){
@@ -57,6 +62,7 @@ public class InventoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('BOSS')")
     public ResponseEntity<Void> deleteInventory(@PathVariable Long id){
         inventoryService.deleteInventory(id);
         return ResponseEntity.noContent().build();//204 No Content

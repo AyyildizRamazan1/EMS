@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,11 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", userDetails.getAuthorities());
+        claims.put("roles",
+                userDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList()
+        );
         return buildToken(claims, userDetails, jwtExpiration);
     }
 
@@ -44,7 +49,8 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        // 💡 Boşlukları temizle ve büyük/küçük harf duyarlılığını normalize et
+        return (username.trim().equalsIgnoreCase(userDetails.getUsername().trim())) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
